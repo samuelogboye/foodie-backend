@@ -1,8 +1,11 @@
 """Emails module"""
 
-from flask import url_for, render_template
+from flask import url_for, render_template, current_app
 from flask_mail import Message
 from foodie import mail
+import threading
+
+
 
 def send_password_reset_email(name, email, token):
     # Send a password reset email with the tokenized link
@@ -12,63 +15,62 @@ def send_password_reset_email(name, email, token):
     mail.send(msg)
 
 
-# def send_register_email(name, email, token):
-#     # Send an email with the tokenized link
-#     confirm_url = url_for('auth.confirm_email', token=token, _external=True)
-#     msg = Message('Registration Confirmation', recipients=[email])
-#     msg.body = f"Hi {name}, \n\nPlease confirm your email by clicking the following link: {confirm_url} \n\n\n MedApp Team"
-#     mail.send(msg)
 
 
-def send_otp_email(name, email, otp):
-    # Send an email with the OTP
-#     msg = Message('Registration Confirmation', recipients=[email])
-#     msg.body = f"Hi {name}, \n\nPlease use this verification code to confirm your email: {otp} \n\n The verification code expires in 10 minutes. \n\n Please do not disclose it to anyone else \n\n\n MediTrace Team"
-#     mail.send(msg)
-    try:
-        # Create the message for the user
-        msg_title = "Registration Confirmation - Foodie"
-        sender = "noreply@app.com"
-        msg = Message(msg_title, sender=sender, recipients=[email])
-        msg_body = "Please use this verification code to confirm your registration"
-        msg.body = ""
-        msg.reply_to = "foodie@gmail.com"
-        data = {
-            'app_name': "Foodie",
-            'title': msg_title,
-            'body': msg_body,
-            'name': name,
-            'otp': otp
-        }
-        msg.html = render_template("email_otp.html", data=data)
-
-        # Send the message
+def send_async_email(app, msg):
+    with app.app_context():
         mail.send(msg)
+
+def send_email(name, email, subject, template, template_data):
+    try:
+        with current_app.app_context():
+                msg_title = subject
+                sender = "noreply@app.com"
+                msg = Message(msg_title, sender=sender, recipients=[email])
+                msg.html = render_template(template, data=template_data)
+
+                thr = threading.Thread(target=send_async_email, args=(current_app._get_current_object(), msg))
+                thr.start()
 
     except Exception as e:
         return {'msg': 'Email not sent', 'error': str(e)}
 
-
+# Sending password reset email
 def reset_password_otp(name, email, otp):
-    try:
-        # Create the message for the user
-        msg_title = "Password Reset OTP - Foodie"
-        sender = "noreply@app.com"
-        msg = Message(msg_title, sender=sender, recipients=[email])
-        msg_body = "Please use this verification code to reset your password"
-        msg.body = ""
-        msg.reply_to = "foodie@gmail.com"
-        data = {
-            'app_name': "Foodie",
-            'title': msg_title,
-            'body': msg_body,
-            'name': name,
-            'otp': otp
-        }
-        msg.html = render_template("email_otp.html", data=data)
+    subject = 'Verification Code'
+    template = 'email_otp.html'
+    template_data = {
+        'app_name': 'Foodie',
+        'title': 'Password Reset OTP - Foodie',
+        'body': 'PPlease use this verification code to reset your password',
+        'name': name,
+        'otp': otp
+    }
+    send_email(name, email, subject, template, template_data)
 
-        # Send the message
-        mail.send(msg)
+# Sending OTP for registration or password reset
+def send_otp_email(name, email, otp):
+    subject = 'Verification Code'
+    template = 'email_otp.html'
+    template_data = {
+        'app_name': 'Foodie',
+        'title': 'Registration Confirmation - Foodie',
+        'body': 'Please use this verification code to confirm your registration',
+        'name': name,
+        'otp': otp
+    }
+    send_email(name, email, subject, template, template_data)
 
-    except Exception as e:
-        return {'msg': 'Email not sent', 'error': str(e)}
+# Sending welcome email
+def welcome_email(name, email):
+    subject = 'Welcome to Foodie'
+    template = 'welcome_email.html'
+    template_data = {
+        'app_name': 'Foodie',
+        'title': 'Welcome to Foodie - Foodie',
+        'body': 'Welcome to Foodie. Please use this verification code to confirm your registration',
+        'name': name
+    }
+    send_email(name, email, subject, template, template_data)
+
+

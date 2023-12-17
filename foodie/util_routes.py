@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 import cloudinary.uploader
 from foodie.models.user import User
 
-
 load_dotenv(".env")
 
 

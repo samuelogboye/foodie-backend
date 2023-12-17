@@ -6,6 +6,7 @@ from foodie import db
 from foodie.models.user import User
 from functools import wraps
 from foodie.emails import send_password_reset_email, send_otp_email, reset_password_otp
+from foodie.sms import send_otp_sms
 from datetime import datetime, timedelta
 from random import randint
 from .auth_utils import login_required, admin_required
@@ -173,6 +174,7 @@ def password_reset_otp():
     # Send the OTP to the user's email (implement send_otp_email function)
     full_name = user.first_name + " " + user.last_name
     reset_password_otp(full_name, user.email, new_otp)
+    #send_otp_sms(otp=new_otp)
 
     return jsonify({'message': 'Password reset OTP sent to email'}), 200
 
