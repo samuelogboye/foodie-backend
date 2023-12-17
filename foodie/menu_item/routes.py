@@ -107,3 +107,16 @@ def create_menu_item(category_id : UUID):
                 'message': 'Menu item created successfully'
         }), 201
 
+# Route to get information about a menu item
+@menu_item_bp.route('/<menu_item_id>', methods=['GET'])
+def get_menu_item(menu_item_id : UUID):
+        menu_item_id = IdSchema(id=menu_item_id).id
+        menu_item = MenuItem.query.filter_by(id=menu_item_id).first()
+        if not menu_item:
+                return jsonify({
+                        'message': 'Menu item not found'
+                }), 404
+        return jsonify({
+                'menu_item': menu_item.format(),
+                'message': 'Menu item retrieved successfully'
+        }), 200
