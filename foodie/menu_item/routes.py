@@ -78,14 +78,15 @@ def get_menu_items_by_category(category_id : UUID):
         menu_items = [item.format() for item in menu_items]
         return jsonify({
                 'menu_items': menu_items,
-                'message': f'Menu items for {category_name} retrieved successfully'
+                'message': f'Menu items for {category_name} retrieved successfully',
+                'menu_items_count': len(menu_items)
         }), 200
 
 
 # Route to create a menu item under a category
 @menu_item_bp.route('/<category_id>/add-item', methods=['POST'])
 def create_menu_item(category_id : UUID):
-        category_id = IdSchema(id=category_id).id
+        #category_id = IdSchema(id=category_id).id
         name = request.form.get('name')
         description = request.form.get('description')
         price = request.form.get('price')
