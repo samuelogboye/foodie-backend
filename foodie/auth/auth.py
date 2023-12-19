@@ -286,6 +286,7 @@ def profile():
         'last_name': user.last_name,
         'phone_number': user.phone_number,
         'profile_picture': user.profile_picture,
+        'last_login': user.last_login,
         'createdAt': user.createdAt,
         'updatedAt': user.updatedAt
     }
