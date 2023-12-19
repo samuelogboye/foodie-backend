@@ -10,7 +10,7 @@ from foodie.sms import send_otp_sms
 from datetime import datetime, timedelta
 from random import randint
 from .auth_utils import login_required, admin_required
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, decode_token, get_jwt_identity, get_jwt
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, decode_token, get_jwt_identity, get_jwt, set_access_cookies, set_refresh_cookies, unset_jwt_cookies
 
 # Create a Blueprint for authentication routes
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
@@ -198,22 +198,17 @@ def login():
     access_token = create_access_token(identity=user.id, expires_delta=timedelta(hours=1))   # Access token expires in 1 hour
     refresh_token = create_refresh_token(identity=user.id, expires_delta=timedelta(days=90))  # Refresh token expires in 24 hours
 
-    # get user data
-    userData = {
-        "id": user.id,
-        "email": user.email,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "email_confirmed": user.email_confirmed,
-        "profile_picture": user.profile_picture,
-        "is_active": user.is_active,
-        "is_admin": user.is_admin,
-        "accessToken": access_token,
-        "refreshToken": refresh_token,
-        "createdAt": user.createdAt,
-        "updatedAt": user.updatedAt
-        }
-    return jsonify({'userData': userData, 'message': 'Logged in successfully'}), 200
+    response = jsonify({"msg": "login successful", "accessToken": access_token})
+    set_access_cookies(response, access_token)
+    return response, 200
+
+
+# Endpoint for user logout
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    response = jsonify({"msg": "logout successful"})
+    unset_jwt_cookies(response)
+    return response
 
 # Endpoint for token refresh
 @auth_bp.route('/refresh', methods=['POST'])
@@ -235,12 +230,6 @@ def check_email():
         return jsonify({'emailExists': True}), 200
     else:
         return jsonify({'emailExists': False}), 200
-
-# Endpoint for user logout
-@auth_bp.route('/logout', methods=['POST'])
-def logout():
-    return jsonify({'message': 'Logged out successfully'}), 200
-
 
 
 # Endpoint for password reset (after receiving the reset token)
