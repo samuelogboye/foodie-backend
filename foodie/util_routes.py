@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, send_file, request, url_for, send_from_directory, current_app
+from flask import Blueprint, jsonify, send_file, request, url_for, send_from_directory, current_app, copy_current_request_context
 from werkzeug.utils import secure_filename
 from foodie.auth.auth import login_required
 import os
@@ -6,6 +6,7 @@ from foodie import db
 from dotenv import load_dotenv
 import cloudinary.uploader
 from foodie.models.user import User
+import threading
 
 load_dotenv(".env")
 
@@ -45,14 +46,34 @@ def cron_job():
 
 
 def get_image_url(file_to_upload):
+    app = current_app
     try:
-        current_app.logger.info('in upload route')
-        cloudinary.config(cloud_name=os.getenv('CLOUD_NAME'), api_key=os.getenv('API_KEY'), api_secret=os.getenv('API_SECRET'))
-        upload_result = cloudinary.uploader.upload(file_to_upload)
-        current_app.logger.info(upload_result)
+        #with app.app_context():
+                current_app.logger.info('in upload route')
+                cloudinary.config(cloud_name=os.getenv('CLOUD_NAME'), api_key=os.getenv('API_KEY'), api_secret=os.getenv('API_SECRET'))
+                upload_result = cloudinary.uploader.upload(file_to_upload)
+                current_app.logger.info(upload_result)
+
+                picture_url = upload_result.get('url')
+                return picture_url
+                # print(f"Profile picture URL: {picture_url}")
+                # user.profile_picture = picture_url
+                # db.session.commit()
+                # #user.update()
+                # print("Profile picture updated")
     except Exception as e:
-        return jsonify({'message': str(e)}), 500
+        print(f"Error uploading image: {e}")
+        return {'msg': 'Request not sent', 'error': str(e)}
 
-    picture_url = upload_result.get('url')
 
-    return picture_url
+
+# def get_image_url(file_to_upload, user):
+#     try:
+#          thr = threading.Thread(
+#             target=copy_current_request_context(get_image_url_cloudinary),
+#             args=(file_to_upload, user)
+#         )
+#          thr.start()
+#          print("Thread started")
+#     except Exception as e:
+#          return {'msg': 'Request not sent', 'error': str(e)}

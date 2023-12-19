@@ -287,6 +287,7 @@ def profile():
         'phone_number': user.phone_number,
         'profile_picture': user.profile_picture,
         'last_login': user.last_login,
+        'house_address': user.house_address,
         'createdAt': user.createdAt,
         'updatedAt': user.updatedAt
     }
@@ -296,15 +297,21 @@ def profile():
 @auth_bp.route('/profile', methods=['PUT'])
 @login_required
 def update_profile(user):
-    if request.files['profile_picture']:
-        user.profile_picture = get_image_url(request.files['profile_picture'])
-    user.house_address = request.form['house_address']
-    user.first_name = request.form['first_name']
-    user.last_name = request.form['last_name']
-    user.phone_number = request.form['phone_number']
-    user.update()
+    try:
+        if 'profile_picture' in request.files:
+                profile_picture = request.files['profile_picture']
+                user.profile_picture = get_image_url(profile_picture)
+        user.house_address = request.form['house_address']
+        user.first_name = request.form['first_name']
+        user.last_name = request.form['last_name']
+        user.phone_number = request.form['phone_number']
+        user.update()
 
-    return jsonify(user.format()), 200
+        return jsonify(user.format()), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating user profile: {e}")
+        return str(e), 500
 
 # Endpoint for user profile deletion
 @auth_bp.route('/profile', methods=['DELETE'])
