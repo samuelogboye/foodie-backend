@@ -296,14 +296,12 @@ def profile():
 @auth_bp.route('/profile', methods=['PUT'])
 @login_required
 def update_profile(user):
-    data = request.json
-    if data['profile_picture']:
-        user.profile_picture = get_image_url(data['profile_picture'])
-    user.email = data['email']
-    user.first_name = data['first_name']
-    user.last_name = data['last_name']
-    user.phone_number = data['phone_number']
-
+    if request.files['profile_picture']:
+        user.profile_picture = get_image_url(request.files['profile_picture'])
+    user.house_address = request.form['house_address']
+    user.first_name = request.form['first_name']
+    user.last_name = request.form['last_name']
+    user.phone_number = request.form['phone_number']
     user.update()
 
     return jsonify(user.format()), 200
