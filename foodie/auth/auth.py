@@ -251,14 +251,37 @@ def reset_password():
 
     return jsonify({'message': 'Password reset successful'}), 200
 
+# Endpoint for Password Change
+@auth_bp.route('/change-password', methods=['PUT'])
+@login_required
+def change_password(user):
+    data = request.json
+    if 'old_password' not in data or 'new_password' not in data:
+        return jsonify({'message': 'Old password and new password are required'}), 400
+    if not check_password_hash(user.password, data['old_password']):
+        return jsonify({'message': 'Invalid old password'}), 401
+    user.password = generate_password_hash(data['new_password'])
+    db.session.commit()
+    return jsonify({'message': 'Password changed successfully'}), 200
+
 # Endpoint for user profile
 @auth_bp.route('/profile', methods=['GET'])
 @jwt_required()
 def profile():
     user = get_jwt_identity()
-    print(user)
     user = User.query.get(user)
-    return jsonify(user.format())
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+    userData = {
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'phone_number': user.phone_number,
+        'profile_picture': user.profile_picture,
+        'createdAt': user.createdAt,
+        'updatedAt': user.updatedAt
+    }
+    return jsonify(userData)
 
 # Endpoint for user profile update
 @auth_bp.route('/profile', methods=['PUT'])
@@ -273,6 +296,8 @@ def update_profile(user):
         user.last_name = data['last_name']
     if 'password' in data:
         user.password = generate_password_hash(data['password'])
+
+
     db.session.commit()
     return jsonify(user.format()), 200
 
