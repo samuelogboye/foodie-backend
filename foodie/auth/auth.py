@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from random import randint
 from .auth_utils import login_required, admin_required
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, decode_token, get_jwt_identity, get_jwt, set_access_cookies, set_refresh_cookies, unset_jwt_cookies
+from foodie.util_routes import get_image_url
 
 # Create a Blueprint for authentication routes
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
@@ -295,17 +296,15 @@ def profile():
 @login_required
 def update_profile(user):
     data = request.json
-    if 'email' in data:
-        user.email = data['email']
-    if 'first_name' in data:
-        user.first_name = data['first_name']
-    if 'last_name' in data:
-        user.last_name = data['last_name']
-    if 'password' in data:
-        user.password = generate_password_hash(data['password'])
+    if data['profile_picture']:
+        user.profile_picture = get_image_url(data['profile_picture'])
+    user.email = data['email']
+    user.first_name = data['first_name']
+    user.last_name = data['last_name']
+    user.phone_number = data['phone_number']
 
+    user.update()
 
-    db.session.commit()
     return jsonify(user.format()), 200
 
 # Endpoint for user profile deletion
