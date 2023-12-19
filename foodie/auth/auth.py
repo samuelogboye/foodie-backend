@@ -258,6 +258,10 @@ def change_password(user):
     data = request.json
     if 'old_password' not in data or 'new_password' not in data:
         return jsonify({'message': 'Old password and new password are required'}), 400
+    if data['old_password'] == data['new_password']:
+        return jsonify({'message': 'Old password and new password cannot be the same'}), 400
+    if len(data['new_password']) < 6:
+        return jsonify({'message': 'New password must be at least 6 characters long'}), 400
     if not check_password_hash(user.password, data['old_password']):
         return jsonify({'message': 'Invalid old password'}), 401
     user.password = generate_password_hash(data['new_password'])
