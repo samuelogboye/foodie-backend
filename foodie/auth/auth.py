@@ -194,6 +194,9 @@ def login():
     if not user or not check_password_hash(user.password, data['password']):
         return jsonify({'message': 'Invalid email or password'}), 401
 
+    user.last_login = datetime.now()
+    user.update()
+
     # Generate and return an authentication token for the user
     access_token = create_access_token(identity=user.id, expires_delta=timedelta(hours=1))   # Access token expires in 1 hour
     refresh_token = create_refresh_token(identity=user.id, expires_delta=timedelta(days=90))  # Refresh token expires in 24 hours
