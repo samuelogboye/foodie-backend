@@ -39,7 +39,8 @@ def create_app(config):
 
 
     # Initialize CORS
-    CORS(app, supports_credentials=True)
+    CORS(app, origins=['http://localhost:5173', 'http://localhost:5175'], supports_credentials=True)
+
 
     @app.errorhandler(OperationalError)
     def handle_db_connection_error(e):
