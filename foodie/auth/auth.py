@@ -8,6 +8,7 @@ from functools import wraps
 from foodie.emails import send_password_reset_email, send_otp_email, reset_password_otp
 from foodie.sms import send_otp_sms
 from datetime import datetime, timedelta
+from foodie.models.order import Order
 from random import randint
 from .auth_utils import login_required, admin_required
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, decode_token, get_jwt_identity, get_jwt, set_access_cookies, set_refresh_cookies, unset_jwt_cookies
@@ -280,6 +281,10 @@ def profile():
     user = User.query.get(user)
     if not user:
         return jsonify({'message': 'User not found'}), 404
+
+    #Check the number of orders the user has placed
+    order = Order.query.filter_by(user_id=user.id).all()
+    order_count = len(order)
     userData = {
         'email': user.email,
         'first_name': user.first_name,
@@ -288,6 +293,7 @@ def profile():
         'profile_picture': user.profile_picture,
         'last_login': user.last_login,
         'house_address': user.house_address,
+        'order_count': order_count,
         'createdAt': user.createdAt,
         'updatedAt': user.updatedAt
     }
