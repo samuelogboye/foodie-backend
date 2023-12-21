@@ -39,7 +39,8 @@ def create_app(config):
 
 
     # Initialize CORS
-    CORS(app, origins=['http://localhost:5173', 'http://localhost:5175'], supports_credentials=True)
+    CORS(app)
+    #CORS(app, origins=['http://localhost:5173', 'http://localhost:5175'], supports_credentials=True)
 
 
     @app.errorhandler(OperationalError)
@@ -88,6 +89,7 @@ def create_app(config):
     from .util_routes import util_bp
     from foodie.menu_category.routes import menu_category_bp
     from foodie.menu_item.routes import menu_item_bp
+    from foodie.orders.routes import order_bp
 
 
     # register blueprint
@@ -96,6 +98,8 @@ def create_app(config):
     app.register_blueprint(util_bp)
     app.register_blueprint(menu_category_bp)
     app.register_blueprint(menu_item_bp)
+    app.register_blueprint(order_bp)
+
 
 
     # create db tables from models if not exists
