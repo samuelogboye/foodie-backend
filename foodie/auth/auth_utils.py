@@ -4,6 +4,23 @@ from flask import current_app, request, jsonify
 from functools import wraps
 from foodie.models.user import User
 from datetime import datetime, timedelta
+from cryptography.fernet import Fernet
+import os
+from dotenv import load_dotenv
+
+
+load_dotenv(".env")
+
+# Initialise the Fernet cipher suite
+cipher_suite = Fernet(os.getenv("FERNET_KEY").encode())
+
+# Function to encrypt the order_id
+def encrypt_order_id(order_id):
+    return cipher_suite.encrypt(str(order_id).encode()).decode()
+
+# Function to decrypt the encrypted order_id
+def decrypt_order_id(encrypted_order_id):
+    return int(cipher_suite.decrypt(encrypted_order_id.encode()).decode())
 
 
 # Decorator to check if the user is logged in
