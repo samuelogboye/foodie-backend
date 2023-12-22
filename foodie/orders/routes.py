@@ -92,7 +92,7 @@ def create_order(user):
                 checkout_session = stripe.checkout.Session.create(
                     line_items=line_items,
                     mode="payment",
-                    success_url='https://foodie-bh1b.onrender.com/',
+                    success_url='https://main--statuesque-crepe-3382b9.netlify.app/',
                     cancel_url=YOUR_DOMAIN + "/cancel",
                 )
 
