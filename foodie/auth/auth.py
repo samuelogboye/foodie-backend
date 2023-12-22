@@ -424,60 +424,67 @@ def google_login():
 # Endpoint for Google login callback
 @auth_bp.route("/google/callback", methods=["GET"])
 def google_callback():
-    print("Google callback")
-    # Get authorization code Google sent back to you
-    code = request.args.get("code")
+    try:
+        print("Google callback")
+        # Get authorization code Google sent back to you
+        code = request.args.get("code")
 
-    # Find out what URL to hit to get tokens that allow you to ask for
-    # things on behalf of a user
-    google_provider_cfg = get_google_provider_cfg()
-    token_endpoint = google_provider_cfg["token_endpoint"]
+        # Find out what URL to hit to get tokens that allow you to ask for
+        # things on behalf of a user
+        google_provider_cfg = get_google_provider_cfg()
+        token_endpoint = google_provider_cfg["token_endpoint"]
 
-    # Prepare and send request to get tokens
-    token_url, headers, body = client.prepare_token_request(
-        token_endpoint,
-        authorization_response=request.url,
-        redirect_url=request.base_url,
-        code=code
-    )
-    token_response = requests.post(
-        token_url,
-        headers=headers,
-        data=body,
-        auth=(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
-    )
-
-    # Parse the tokens
-    client.parse_request_body_response(json.dumps(token_response.json()))
-
-    # Get user info from Google
-    userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
-    uri, headers, body = client.add_token(userinfo_endpoint)
-    userinfo_response = requests.get(uri, headers=headers, data=body)
-
-    # Check if user email is verified
-    if userinfo_response.json().get("email_verified"):
-        unique_id = userinfo_response.json()["sub"]
-        users_email = userinfo_response.json()["email"]
-        picture = userinfo_response.json()["picture"]
-        users_name = userinfo_response.json()["given_name"]
-    else:
-        return jsonify({"error": "User email not available or not verified by Google."}), 400
-
-    # Create a user with the info provided by Google
-    user = User.query.filter_by(email=users_email).first()
-    if not user:
-        user = User(
-            unique_id=unique_id,
-            email=users_email,
-            name=users_name,
-            picture=picture
+        # Prepare and send request to get tokens
+        token_url, headers, body = client.prepare_token_request(
+            token_endpoint,
+            authorization_response=request.url,
+            redirect_url=request.base_url,
+            code=code
         )
-        db.session.add(user)
-        db.session.commit()
-    # Login the user by returning them access token
-    access_token = create_access_token(identity=user.id)
-    refresh_token = create_refresh_token(identity=user.id)
-    response = jsonify({"msg": "login successful", "accessToken": access_token})
+        token_response = requests.post(
+            token_url,
+            headers=headers,
+            data=body,
+            auth=(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
+        )
+
+        # Parse the tokens
+        client.parse_request_body_response(json.dumps(token_response.json()))
+
+        # Get user info from Google
+        userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
+        uri, headers, body = client.add_token(userinfo_endpoint)
+        userinfo_response = requests.get(uri, headers=headers, data=body)
+
+        # Check if user email is verified
+        if userinfo_response.json().get("email_verified"):
+            unique_id = userinfo_response.json()["sub"]
+            users_email = userinfo_response.json()["email"]
+            picture = userinfo_response.json()["picture"]
+            users_name = userinfo_response.json()["given_name"]
+        else:
+            return jsonify({"error": "User email not available or not verified by Google."}), 400
+
+        # Create a user with the info provided by Google
+        user = User.query.filter_by(email=users_email).first()
+        if not user:
+            user = User(
+                email=users_email,
+                first_name=users_name[0],
+                last_name=users_name[1],
+                phone_number=+21000000000,
+                profile_picture=picture,
+                password=generate_password_hash("password"),
+            )
+            user.insert()
+        # Login the user by returning them access token
+        access_token = create_access_token(identity=user.id)
+        print("Access token:", access_token)
+        response = jsonify({"msg": "login successful", "accessToken": access_token})
+        return response, 200
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "Failed to log in with Google."}), 400
+
 
 
