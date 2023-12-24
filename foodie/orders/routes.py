@@ -44,71 +44,116 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 @order_bp.route('/', methods=['POST'])
 @login_required
 def create_order(user):
-        try:
-                data = request.get_json()
-                user_id = user.id
-                total_price = data.get('totalOrderPrice')
-                delivery_address = data.get('shippingAddress')
-                status='processing'
+    print(user.id)
+    try:
+        data = request.get_json()
+        user_id = user.id
+        #total_price = data.get('totalOrderPrice')
+        total_price = data.get('totalPriceCart')
+        print(total_price)
+        delivery_address = data.get('shippingAddress')
+        status = 'pending'
+        delivery_charge = 300
+        subtotal = total_price + delivery_charge
+        transaction_fee = int(0.1 * subtotal)
 
-                if not user_id or not total_price or not data['cartItems'] or not delivery_address or not status:
-                        return jsonify({
-                                'message': 'Invalid request'
-                        }), 400
+        print(transaction_fee)
 
-                new_order = Order(user_id=user_id, total_price=total_price, delivery_address=delivery_address, status=status)
-                new_order.insert()
+        if not user_id or not total_price or not data['cartItems'] or not delivery_address or not status:
+            return jsonify({'message': 'Invalid request'}), 400
 
-                line_items = []
-                for item in data['cartItems']:
-                        order_item = OrderItem(order_id=new_order.id, menu_item_id=item['id'], quantity=item['quantity'], price=item['total'])
-                        db.session.add(order_item)
+        new_order = Order(user_id=user_id, total_price=total_price, delivery_address=delivery_address, status=status)
+        new_order.insert()
 
-                        menu_item = MenuItem.query.filter_by(id=item['id']).first()
-                        if not menu_item:
-                                return jsonify({
-                                        'message': 'Menu item not found'
-                                }), 404
+        line_items = []
+        for item in data['cartItems']:
+            order_item = OrderItem(order_id=new_order.id, menu_item_id=item['id'], quantity=item['quantity'], price=item['total'])
+            db.session.add(order_item)
 
-                        line_items.append({
-                                'price_data': {
-                                        'currency': 'ngn',
-                                        'product_data': {
-                                                'name': menu_item.name,
-                                                'images': [menu_item.image_url]
-                                        },
-                                        'unit_amount': int(menu_item.price * 100)
-                                },
-                                'quantity': item['quantity']
-                        })
-
-                db.session.commit()
-                print(line_items)
-                # Get the domain dynamically
-                YOUR_DOMAIN = request.url_root[:-1]
-                # Encrypt order_id to embed in the success_url
-                encrypted_order_id = encrypt_order_id(new_order.id)
-                success_url = f"{request.url_root[:-1]}/success/{encrypted_order_id}?appreciate=thanksfortheorder"
-                checkout_session = stripe.checkout.Session.create(
-                    line_items=line_items,
-                    mode="payment",
-                    success_url='https://main--statuesque-crepe-3382b9.netlify.app/',
-                    cancel_url=YOUR_DOMAIN + "/cancel",
-                )
-
-                return (
-                    jsonify(
-                        {
-                            "checkout_session_id": checkout_session.id,
-                            "checkout_session_url": checkout_session.url,
-                        }
-                    ),
-                    200,
-                )
-        except Exception as e:
+            menu_item = MenuItem.query.filter_by(id=item['id']).first()
+            if not menu_item:
                 db.session.rollback()
-                print(f"Error creating order: {e}")
-                return str(e), 500
+                return jsonify({'message': 'Menu item not found'}), 404
+
+            line_items.append({
+                'price_data': {
+                    'currency': 'ngn',
+                    'product_data': {
+                        'name': menu_item.name,
+                        'images': [menu_item.image_url]
+                    },
+                    'unit_amount': int(menu_item.price * 100)
+                },
+                'quantity': item['quantity']
+            })
+
+        # Create a line item for delivery charge
+        line_items.append({
+            'price_data': {
+                'currency': 'ngn',
+                'product_data': {
+                    'name': 'Delivery Charge',
+                },
+                'unit_amount': delivery_charge * 100,  # Amount in cents
+            },
+            'quantity': 1,  # Assuming one unit of delivery charge
+        })
+        # Create a line item for transaction fee
+        line_items.append({
+            'price_data': {
+                'currency': 'ngn',
+                'product_data': {
+                    'name': 'Transaction Fee',
+                },
+                'unit_amount': transaction_fee * 100,  # Amount in cents
+            },
+            'quantity': 1,  # Assuming one unit of transaction fee
+        })
+
+        db.session.commit()
+        YOUR_DOMAIN = 'https://main--statuesque-crepe-3382b9.netlify.app'
+        #YOUR_DOMAIN = 'http://0.0.0.0:5175'
+        encrypted_order_id = encrypt_order_id(new_order.id)
+        success_url = f"{YOUR_DOMAIN}/success/{encrypted_order_id}"
+        checkout_session = stripe.checkout.Session.create(
+            line_items=line_items,
+            mode="payment",
+            success_url=success_url,
+            cancel_url=YOUR_DOMAIN
+        )
+
+        print(checkout_session.url)
+
+        return jsonify({
+            "checkout_session_id": checkout_session.id,
+            "checkout_session_url": checkout_session.url
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating order: {e}")
+        return str(e), 500
 
 
 
+# Route to handle successful payment
+@order_bp.route("/success/<encrypted_order_id>", methods=["GET"])
+def success(encrypted_order_id):
+    try:
+        # Decrypt the encrypted_order_id to get the actual order_id
+        print(encrypted_order_id)
+        print(type(encrypted_order_id))
+        order_id = decrypt_order_id(encrypted_order_id)
+        print(type(order_id))
+        if not order_id:
+            return jsonify({"message": "Invalid Request"}), 400
+
+        order = Order.query.get(id=order_id)
+        if not order:
+            return jsonify({"message": "Order not found"}), 404
+
+        order.payment_status = 'processing'
+        db.session.commit()
+        return jsonify({"message": "Payment successful"}), 200
+    except Exception as e:
+        print(f"Error processing payment: {e}")
+        return jsonify({"message": "Payment failed"}), 500
