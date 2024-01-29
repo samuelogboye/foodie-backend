@@ -44,22 +44,20 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 @order_bp.route('/', methods=['POST'])
 @login_required
 def create_order(user):
-    print(user.id)
     try:
         data = request.get_json()
         user_id = user.id
         #total_price = data.get('totalOrderPrice')
         total_price = data.get('totalPriceCart')
-        print(total_price)
         delivery_address = data.get('shippingAddress')
+        if not delivery_address:
+             delivery_address = user.house_address
         status = 'pending'
         delivery_charge = 300
         subtotal = total_price + delivery_charge
         transaction_fee = int(0.1 * subtotal)
 
-        print(transaction_fee)
-
-        if not user_id or not total_price or not data['cartItems'] or not delivery_address or not status:
+        if not user_id or not total_price or not data['cartItems'] or not status:
             return jsonify({'message': 'Invalid request'}), 400
 
         new_order = Order(user_id=user_id, total_price=total_price, delivery_address=delivery_address, status=status)
@@ -109,10 +107,9 @@ def create_order(user):
             },
             'quantity': 1,  # Assuming one unit of transaction fee
         })
-
         db.session.commit()
-        YOUR_DOMAIN = 'https://main--statuesque-crepe-3382b9.netlify.app'
-        #YOUR_DOMAIN = 'http://0.0.0.0:5175'
+        #YOUR_DOMAIN = 'https://main--statuesque-crepe-3382b9.netlify.app'
+        YOUR_DOMAIN = 'http://0.0.0.0:8080'
         encrypted_order_id = encrypt_order_id(new_order.id)
         success_url = f"{YOUR_DOMAIN}/success/{encrypted_order_id}"
         checkout_session = stripe.checkout.Session.create(
@@ -121,8 +118,6 @@ def create_order(user):
             success_url=success_url,
             cancel_url=YOUR_DOMAIN
         )
-
-        print(checkout_session.url)
 
         return jsonify({
             "checkout_session_id": checkout_session.id,
@@ -138,6 +133,7 @@ def create_order(user):
 # Route to handle successful payment
 @order_bp.route("/success/<encrypted_order_id>", methods=["GET"])
 def success(encrypted_order_id):
+    print("now here", encrypted_order_id)
     try:
         # Decrypt the encrypted_order_id to get the actual order_id
         print(encrypted_order_id)

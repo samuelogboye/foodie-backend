@@ -10,14 +10,10 @@ import yaml
 import os
 from flask_mail import Mail
 from flask_jwt_extended import JWTManager
-import vonage
+
 
 
 db = SQLAlchemy()
-
-
-client = vonage.Client(key=os.getenv('VONAGE_KEY'), secret=os.getenv('VONAGE_SECRET'))
-sms = vonage.Sms(client)
 
 # Create an instance of Swagger
 swagger = Swagger()

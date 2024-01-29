@@ -1,0 +1,19 @@
+version: "3"
+services:
+  backend:
+    build:
+      context: ./backend
+    image: backend
+    command: "gunicorn -w 2 -b :5050 app:app"
+    ports:
+      - "5050:5050"
+
+  frontend:
+    build:
+      context: ./frontend
+    image: frontend
+    command: "npm run dev"
+    ports:
+      - "5175:80"
+    depends_on:
+      - backend
