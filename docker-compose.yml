@@ -14,6 +14,6 @@ services:
     image: frontend
     command: "npm run dev"
     ports:
-      - "5175:80"
+      - "5175:5175"
     depends_on:
       - backend

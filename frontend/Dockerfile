@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm config set fetch-retry-maxtimeout 60000
+# RUN npm config set fetch-retry-maxtimeout 60000
 RUN npm i
 
 # Copy the rest of the application code to the working directory
