@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import user from "./assets/user.svg";
-import { useAuth } from "./AuthContext";
+// import user from "./assets/user.svg";
+import { useAuth } from "@/components/auth/AuthContext";
 import { toast } from "react-toastify";
-import baseUrl from "./base";
+import baseUrl from "@/index";
 
 function Profile() {
   const { handleLogout } = useAuth();

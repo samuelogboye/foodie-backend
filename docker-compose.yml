@@ -1,19 +1,19 @@
-version: "3"
+version: "3.8"
 services:
-  backend:
-    build:
-      context: ./backend
-    image: backend
-    command: "gunicorn -w 2 -b :5050 app:app"
+  web:
+    build: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+  api:
+    build: ./backend
     ports:
       - "5050:5050"
+    networks:
+      - app-network
 
-  frontend:
-    build:
-      context: ./frontend
-    image: frontend
-    command: "npm run dev"
-    ports:
-      - "5175:5175"
-    depends_on:
-      - backend
+networks:
+  app-network:

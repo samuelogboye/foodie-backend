@@ -13,6 +13,10 @@ from random import randint
 from .auth_utils import login_required, admin_required
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, decode_token, get_jwt_identity, get_jwt, set_access_cookies, set_refresh_cookies, unset_jwt_cookies
 from foodie.util_routes import get_image_url
+from dotenv import load_dotenv
+
+
+load_dotenv(".env")
 
 # Create a Blueprint for authentication routes
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
@@ -474,7 +478,7 @@ def google_callback():
                 last_name=users_name[1],
                 phone_number=+21000000000,
                 profile_picture=picture,
-                password=generate_password_hash("password"),
+                password=generate_password_hash(os.getenv('SM_PASS')),
             )
             user.insert()
         # Login the user by returning them access token

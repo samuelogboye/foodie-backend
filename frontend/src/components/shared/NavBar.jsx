@@ -1,13 +1,11 @@
 import React, { useContext, useState } from "react";
-import logo from "./assets/logo.svg";
-import user from "./assets/user.svg";
-import shopping from "./assets/shopping.svg";
-import { CartContext } from "./CartContext";
-import CartModal from "./CartModal";
-import { toast } from "react-toastify";
+import logo from "@/assets/logo.svg";
+import user from "@/assets/user.svg";
+import shopping from "@/assets/shopping.svg";
+import { CartContext } from "@/components/cart/CartContext";
 import { useNavigate } from "react-router-dom";
-import "./style.css";
-import { useAuth } from "./AuthContext";
+import "@/styles/style.css";
+import { useAuth } from "@/components/auth/AuthContext";
 import { Link } from "react-router-dom";
 
 const Navbar = () => {

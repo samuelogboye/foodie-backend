@@ -6,28 +6,28 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import Navbar from "./NavBar";
-import Hero from "./Hero";
-import Footer from "./Footer";
-import Menu from "./Menu";
-import MenuCard from "./MenuCard";
-import Login from "./Login";
-import Register from "./Register";
-import Profile from "./Profile";
+import Navbar from "@/components/shared/NavBar";
+import Hero from "@/components/shared/Hero";
+import Footer from "@/components/shared/Footer";
+import Menu from "@/components/menu/Menu";
+import MenuCard from "@/components/menu/MenuCard";
+import Login from "@/components/auth/Login";
+import Register from "@/components/auth/Register";
+import Profile from "@/components/profile/Profile";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import ItemDetailPage from "./ItemDetail";
-import { CartProvider } from "./CartContext";
-import { AuthProvider, useAuth } from "./AuthContext";
-import CartModal from "./CartModal";
-import ItemCheckout from "./Checkout";
-import AuthVerify from "./Auth/AuthVerify";
-import useLogout from "./Auth/useLogout";
-import OrderPage from "./OrderPage";
+// import ItemDetailPage from "./ItemDetail";
+import { CartProvider } from "@/components/cart/CartContext";
+import { AuthProvider, useAuth } from "@/components/auth/AuthContext";
+// import CartModal from "./CartModal";
+import ItemCheckout from "@/components/cart/Checkout";
+import AuthVerify from "@/Auth/AuthVerify";
+import useLogout from "@/Auth/useLogout";
+import OrderPage from "@/components/orderpage/OrderPage";
 
 function RequireAuth({ children }) {
   const { isLoggedIn } = useAuth();
-  console.log("isLoggedIn App" + " " + isLoggedIn);
+  console.log("isLoggedIn App", " " + isLoggedIn);
   let location = useLocation();
 
   if (!isLoggedIn) {

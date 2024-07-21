@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import baseUrl from "./base";
+import baseUrl from "@/index";
 
 function OrderPage() {
   const { str } = useParams();

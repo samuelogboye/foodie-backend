@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "./assets/logo.svg";
-import GoogleLogo from "./assets/google.png";
+import logo from "@/assets/logo.svg";
+import GoogleLogo from "@/assets/google.png";
 import { toast } from "react-toastify";
-import baseUrl from "./base";
-
+import baseUrl from "@/index";
 
 function Register() {
   const navigate = useNavigate();
@@ -30,16 +29,13 @@ function Register() {
 
   const checkEmailExists = async (inputEmail) => {
     try {
-      const response = await fetch(
-        baseUrl + "/auth/check-email",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email: inputEmail }),
-        }
-      );
+      const response = await fetch(baseUrl + "/auth/check-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: inputEmail }),
+      });
 
       const data = await response.json();
       console.log("Email exists:", data.emailExists);
@@ -105,16 +101,13 @@ function Register() {
 
       console.log("Registration data:", data);
 
-      const response = await fetch(
-        baseUrl + "/auth/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
+      const response = await fetch(baseUrl + "/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
       if (response.ok) {
         // If registration is successful, route the user to the login page
@@ -142,12 +135,9 @@ function Register() {
   const handleGoogleLogin = async () => {
     try {
       // Make an HTTP request to your backend when the logo is clicked
-      const response = await fetch(
-        baseUrl + "/auth/google",
-        {
-          method: "GET",
-        }
-      );
+      const response = await fetch(baseUrl + "/auth/google", {
+        method: "GET",
+      });
       if (response.ok) {
         const data = await response.json();
         // Get the redirect URL from the response

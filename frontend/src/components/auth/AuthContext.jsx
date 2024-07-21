@@ -2,7 +2,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import baseUrl from "./base";
+import baseUrl from "@/index";
 
 export const AuthContext = createContext();
 

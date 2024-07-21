@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "./assets/logo.svg";
-import GoogleLogo from "./assets/google.png";
+import logo from "@/assets/logo.svg";
+import GoogleLogo from "@/assets/google.png";
 import { toast } from "react-toastify";
-import baseUrl from "./base";
+import baseUrl from "@/index";
 
 function Login() {
   const navigate = useNavigate();
@@ -68,12 +68,9 @@ function Login() {
   const handleGoogleLogin = async () => {
     try {
       // Make an HTTP request to your backend when the logo is clicked
-      const response = await fetch(
-        baseUrl + "/auth/google",
-        {
-          method: "GET",
-        }
-      );
+      const response = await fetch(baseUrl + "/auth/google", {
+        method: "GET",
+      });
       if (response.ok) {
         const data = await response.json();
         // Get the redirect URL from the response

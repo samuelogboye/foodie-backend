@@ -1,6 +1,6 @@
 import React from "react";
-import heroImg from "./assets/heroImg.png";
-import { useAuth } from "./AuthContext";
+import heroImg from "@/assets/heroImg.png";
+import { useAuth } from "@/components/auth/AuthContext";
 import { Link } from "react-router-dom";
 
 function Hero() {

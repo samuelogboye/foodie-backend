@@ -1,5 +1,5 @@
 import React from "react";
-import rice from "./assets/swallo.png";
+import rice from "@/assets/swallo.png";
 
 function MenuCard() {
   return (

@@ -1,11 +1,10 @@
 import React, { useContext, useState, useEffect } from "react";
-import Navbar from "./NavBar";
-import { CartContext } from "./CartContext";
+import { CartContext } from "@/components/cart/CartContext";
 import { useNavigate } from "react-router-dom";
 
-import { useAuth } from "./AuthContext";
+import { useAuth } from "@/components/auth/AuthContext";
 
-import baseUrl from "./base";
+import baseUrl from "@/index";
 
 function Menu() {
   const [menuCategories, setMenuCategories] = useState([]);

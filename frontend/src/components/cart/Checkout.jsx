@@ -1,11 +1,11 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState } from "react";
 import { useParams } from "react-router-dom";
 import { CartContext } from "./CartContext";
-import rice from "./assets/rice.png";
 import { toast } from "react-toastify";
-import baseUrl from "./base";
+import "@/styles/style.css";
+import baseUrl from "@/index";
 
-const ItemDetailPage = () => {
+const ItemCheckout = () => {
   const accessToken = localStorage.getItem("accessToken");
   const { itemId } = useParams();
   const [item, setItem] = useState(null);
@@ -29,27 +29,20 @@ const ItemDetailPage = () => {
     );
   };
 
-  useEffect(() => {
-    fetch(`${baseUrl}/menu_item/${itemId}`) // Use the correct API endpoint for fetching an individual item
-      .then((response) => response.json())
-      .then((data) => {
-        setItem(data.menu_item); // Set the fetched item data
-      })
-      .catch((error) => {
-        console.error("Error fetching item details:", error);
-      });
-  }, [itemId]);
-
   const totalPrice = item ? quantity * item.price : 0;
-  const deliveryFee = 300;
-  const total = totalPriceCart + deliveryFee;
+  // if there is no item in the cart the delivery fee should be zero
+  const deliveryFee = cartItems.length === 0 ? 0 : 300;
+  const subTotal = totalPriceCart + deliveryFee;
+  const paymentCharges = 0.1 * subTotal;
+
+  const total = subTotal + paymentCharges;
 
   const renderCartItems = () => {
     return cartItems.map((cartItem) => (
       <div key={cartItem.id} className="border-b flex justify-between">
         <div className="flex m-4 items-center gap-3">
           <div>
-            <img src={cartItem.image} alt={cartItem.name} width={200} />
+            <img src={cartItem.image_url} alt={cartItem.name} width={200} />
             <p
               className="text-center font-mono mt-4 text-brandColor cursor-pointer hover:underline"
               onClick={() => removeFromCart(cartItem.id)}
@@ -81,13 +74,15 @@ const ItemDetailPage = () => {
   const items = {
     cartItems,
     shippingAddress,
+    totalPriceCart,
     totalOrderPrice: total,
   };
+  console.log(totalPriceCart);
 
   const Checkout = async () => {
     try {
       // Assuming the API endpoint to create an order is 'https://example.com/api/orders'
-      const response = await fetch("http://0.0.0.0:5000/api/v1/order/", {
+      const response = await fetch(baseUrl + "/order/", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -100,10 +95,13 @@ const ItemDetailPage = () => {
         // Access the response from the API
         const responseData = await response.json();
         console.log("Order created successfully:", responseData);
-        console.log("Order Id", responseData.order.id);
-        clearCart(); // Assuming clearCart is a function that clears the cart
+        const checkout_session_url = responseData.checkout_session_url;
+        clearCart();
         toast.success("Order placed successfully!");
+        window.location.href = checkout_session_url;
       } else {
+        const responseData = await response.json();
+        console.log("responseData", responseData);
         // Handle the case where order creation failed
         alert("Failed to place order");
       }
@@ -114,13 +112,17 @@ const ItemDetailPage = () => {
     }
   };
   return (
-    <div className="flex m-4 gap-4">
+    <div className="flex m-4 gap-4 h-screen">
       <div className="border w-2/3">
         <h1 className="p-4 border-b text-2xl">Cart ({cartItems.length})</h1>
         {cartItems.length > 0 ? (
           renderCartItems()
         ) : (
-          <p className="text-center text-gray-500">No items in the cart</p>
+          <p className="text-center text-gray-500 shake-animation">
+            <a href="/menu">
+              Ops, no items in the cart, click here to start adding Yummy Food
+            </a>
+          </p>
         )}
       </div>
       <div className="border grow h-60 p-5">
@@ -131,7 +133,11 @@ const ItemDetailPage = () => {
         </div>
         <div className="flex justify-between border-b p-4 font-mono">
           <div className="">Delivery</div>
-          <div>NGN 300</div>
+          <div>NGN {deliveryFee}</div>
+        </div>
+        <div className="flex justify-between border-b p-4 font-mono">
+          <div className="">Payment Charges(1% fee)</div>
+          <div>NGN {paymentCharges}</div>
         </div>
         <div className="flex justify-between border-b p-4 font-mono">
           <div className="">Shipping Address</div>
@@ -165,4 +171,4 @@ const ItemDetailPage = () => {
   );
 };
 
-export default ItemDetailPage;
+export default ItemCheckout;
