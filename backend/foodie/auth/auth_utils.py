@@ -1,5 +1,5 @@
 from itsdangerous.url_safe import URLSafeTimedSerializer as Serializer
-from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
+from flask_jwt_extended import get_jwt_identity, jwt_required # type: ignore
 from flask import current_app, request, jsonify
 from functools import wraps
 from foodie.models.user import User
@@ -47,7 +47,7 @@ def login_required(f):
             if not user or not user.is_active:
                 return jsonify({'message': 'Unauthorized access'}), 401
         except Exception as e:
-            return jsonify({'message': 'Invalid token'}), 401
+            return jsonify({'message': 'Invalid token' + e}), 401
 
         return f(user, *args, **kwargs)
 
@@ -77,7 +77,7 @@ def admin_required(f):
             if not user or not user.is_active or not user.is_admin:
                 return jsonify({'message': 'Unauthorized access'}), 401
         except Exception as e:
-            return jsonify({'message': 'Invalid token'}), 401
+            return jsonify({'message': 'Invalid token' + e}), 401
 
         return f(user, *args, **kwargs)
 

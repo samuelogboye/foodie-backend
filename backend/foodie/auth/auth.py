@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
-#from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous.url_safe import URLSafeTimedSerializer as Serializer
 from foodie import db
 from foodie.models.user import User
@@ -11,12 +10,14 @@ from datetime import datetime, timedelta
 from foodie.models.order import Order
 from random import randint
 from .auth_utils import login_required, admin_required
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, decode_token, get_jwt_identity, get_jwt, set_access_cookies, set_refresh_cookies, unset_jwt_cookies
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, set_access_cookies, unset_jwt_cookies # type: ignore
 from foodie.util_routes import get_image_url
 from dotenv import load_dotenv
 
 
 load_dotenv(".env")
+
+USER_NOT_FOUND = 'User not found'
 
 # Create a Blueprint for authentication routes
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
@@ -72,7 +73,7 @@ def register():
             expires_delta=timedelta(days=90)
         )
 
-        userData = {
+        user_data = {
             "id": new_user.id,
             "email": new_user.email,
             "first_name": new_user.first_name,
@@ -87,7 +88,7 @@ def register():
             "createdAt": new_user.createdAt,
             "updatedAt": new_user.updatedAt
         }
-        return jsonify({'message': 'User registered. OTP sent to email for verification.', 'userData': userData}), 201
+        return jsonify({'message': 'User registered. OTP sent to email for verification.', 'userData': user_data}), 201
     except Exception as e:
         current_app.log_exception(exc_info=e)
         return (
@@ -111,7 +112,7 @@ def confirm_otp():
 
     user = User.query.filter_by(email=data['email']).first()
     if not user:
-        return jsonify({'message': 'User not found'}), 404
+        return jsonify({'message': USER_NOT_FOUND}), 404
 
     otp = str(data['otp'])
 
@@ -135,7 +136,7 @@ def resend_otp():
 
     user = User.query.filter_by(email=data['email']).first()
     if not user:
-        return jsonify({'message': 'User not found'}), 404
+        return jsonify({'message': USER_NOT_FOUND}), 404
 
     if user.email_confirmed:
         return jsonify({'message': 'Email already confirmed'}), 400
@@ -165,7 +166,7 @@ def password_reset_otp():
 
     user = User.query.filter_by(email=data['email']).first()
     if not user:
-        return jsonify({'message': 'User not found'}), 404
+        return jsonify({'message': USER_NOT_FOUND}), 404
 
     # Generate a new OTP
     new_otp = str(randint(1000, 9999))  # Generate a new 6-digit OTP
@@ -207,7 +208,7 @@ def login():
     access_token = create_access_token(identity=user.id, expires_delta=timedelta(hours=1))   # Access token expires in 1 hour
     refresh_token = create_refresh_token(identity=user.id, expires_delta=timedelta(days=90))  # Refresh token expires in 24 hours
 
-    response = jsonify({"msg": "login successful", "accessToken": access_token})
+    response = jsonify({"msg": "login successful", "accessToken": access_token, "refreshToken": refresh_token})
     set_access_cookies(response, access_token)
     return response, 200
 
@@ -244,7 +245,6 @@ def check_email():
 # Endpoint for password reset (after receiving the reset token)
 @auth_bp.route('/confirm-reset-password', methods=['POST'])
 def reset_password():
-    data = request.json
     new_password = request.json.get('new_password')
     email = request.json.get('email')
     if not new_password or not email:
@@ -252,7 +252,7 @@ def reset_password():
 
     user_check = User.query.filter_by(email=email).first()
     if not user_check:
-        return jsonify({'message': 'User not found'}), 404
+        return jsonify({'message': USER_NOT_FOUND}), 404
 
     # Update user's password with the new one
     user_check.password = generate_password_hash(new_password)
@@ -284,12 +284,12 @@ def profile():
     user = get_jwt_identity()
     user = User.query.get(user)
     if not user:
-        return jsonify({'message': 'User not found'}), 404
+        return jsonify({'message': USER_NOT_FOUND}), 404
 
     #Check the number of orders the user has placed
     order = Order.query.filter_by(user_id=user.id).all()
     order_count = len(order)
-    userData = {
+    user_data = {
         'email': user.email,
         'first_name': user.first_name,
         'last_name': user.last_name,
@@ -301,7 +301,7 @@ def profile():
         'createdAt': user.createdAt,
         'updatedAt': user.updatedAt
     }
-    return jsonify(userData)
+    return jsonify(user_data)
 
 # Endpoint for user profile update
 @auth_bp.route('/profile', methods=['PUT'])
@@ -344,7 +344,7 @@ def get_users(user):
 def get_user(user_id):
     user = User.query.get(user_id)
     if not user:
-        return jsonify({'message': 'User not found'}), 404
+        return jsonify({'message': USER_NOT_FOUND}), 404
     return jsonify(user.format()), 200
 
 # Endpoint to update a user by ID
@@ -352,7 +352,7 @@ def get_user(user_id):
 def update_user(user_id):
     user = User.query.get(user_id)
     if not user:
-        return jsonify({'message': 'User not found'}), 404
+        return jsonify({'message': USER_NOT_FOUND}), 404
     data = request.json
     if 'email' in data:
         user.email = data['email']
@@ -373,7 +373,7 @@ def update_user(user_id):
 def delete_user(user_id):
     user = User.query.get(user_id)
     if not user:
-        return jsonify({'message': 'User not found'}), 404
+        return jsonify({'message': USER_NOT_FOUND}), 404
     db.session.delete(user)
     db.session.commit()
     return jsonify({'message': 'User deleted successfully'}), 200
@@ -382,10 +382,10 @@ def delete_user(user_id):
 # Endpoint to make a user an admin
 @auth_bp.route('/users/<user_id>/admin', methods=['PATCH'])
 @login_required
-def make_admin(user, user_id):
+def make_admin(user_id):
     user = User.query.get(user_id)
     if not user:
-        return jsonify({'message': 'User not found'}), 404
+        return jsonify({'message': USER_NOT_FOUND}), 404
     user.is_admin = True
     db.session.commit()
     return jsonify(user.format()), 200
@@ -468,6 +468,8 @@ def google_callback():
             users_name = userinfo_response.json()["given_name"]
         else:
             return jsonify({"error": "User email not available or not verified by Google."}), 400
+        
+        print("Use this unique id later", unique_id)
 
         # Create a user with the info provided by Google
         user = User.query.filter_by(email=users_email).first()

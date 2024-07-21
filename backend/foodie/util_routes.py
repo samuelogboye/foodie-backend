@@ -48,7 +48,7 @@ def cron_job():
 def get_image_url(file_to_upload):
     app = current_app
     try:
-        #with app.app_context():
+        with app.app_context():
                 current_app.logger.info('in upload route')
                 cloudinary.config(cloud_name=os.getenv('CLOUD_NAME'), api_key=os.getenv('API_KEY'), api_secret=os.getenv('API_SECRET'))
                 upload_result = cloudinary.uploader.upload(file_to_upload)
@@ -56,24 +56,6 @@ def get_image_url(file_to_upload):
 
                 picture_url = upload_result.get('url')
                 return picture_url
-                # print(f"Profile picture URL: {picture_url}")
-                # user.profile_picture = picture_url
-                # db.session.commit()
-                # #user.update()
-                # print("Profile picture updated")
     except Exception as e:
         print(f"Error uploading image: {e}")
         return {'msg': 'Request not sent', 'error': str(e)}
-
-
-
-# def get_image_url(file_to_upload, user):
-#     try:
-#          thr = threading.Thread(
-#             target=copy_current_request_context(get_image_url_cloudinary),
-#             args=(file_to_upload, user)
-#         )
-#          thr.start()
-#          print("Thread started")
-#     except Exception as e:
-#          return {'msg': 'Request not sent', 'error': str(e)}

@@ -9,7 +9,6 @@ from datetime import datetime
 class User(UserMixin, BaseModel):
     __tablename__ = 'users'
 
-    #id = db.Column(db.String(60), primary_key=True)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     first_name = db.Column(db.String(255), nullable=False)
     last_name = db.Column(db.String(255), nullable=False)
@@ -19,7 +18,7 @@ class User(UserMixin, BaseModel):
     house_address = db.Column(db.String(500), nullable=True, default="")
     otp = db.Column(db.String(6), default=None)
     otp_expiry = db.Column(db.DateTime, default=None)
-    profile_picture = db.Column(db.String(255), default='http://res.cloudinary.com/dbn9ejpno/image/upload/v1700666059/iuqjx3u5ts4tpvofhdnn.png')
+    profile_picture = db.Column(db.String(255), default='https://res.cloudinary.com/dbn9ejpno/image/upload/v1700666059/iuqjx3u5ts4tpvofhdnn.png')
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
     last_login = db.Column(db.DateTime, default=datetime.now())
@@ -28,7 +27,7 @@ class User(UserMixin, BaseModel):
     reviews = db.relationship('Review', backref='user_reviews', lazy=True)
 
 
-    def __init__(self, email, first_name, last_name, password, phone_number, email_confirmed=False, otp=None, otp_expiry=None, house_address=None, profile_picture='http://res.cloudinary.com/dbn9ejpno/image/upload/v1700666059/iuqjx3u5ts4tpvofhdnn.png', is_active=True, is_admin=False, last_login=datetime.now()):
+    def __init__(self, email, first_name, last_name, password, phone_number, email_confirmed=False, otp=None, otp_expiry=None, house_address=None, profile_picture='https://res.cloudinary.com/dbn9ejpno/image/upload/v1700666059/iuqjx3u5ts4tpvofhdnn.png', is_active=True, is_admin=False, last_login=datetime.now()):
         super().__init__()
         self.email = email
         self.first_name = first_name

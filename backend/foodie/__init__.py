@@ -3,13 +3,12 @@ from flask_cors import CORS
 from flask import Flask, jsonify
 from sqlalchemy.exc import OperationalError
 from foodie.config import Config
-#from med_app.config import App_Config
 from flasgger import Swagger
-from flask_caching import Cache
+from flask_caching import Cache # type: ignore
 import yaml
 import os
-from flask_mail import Mail
-from flask_jwt_extended import JWTManager
+from flask_mail import Mail # type: ignore
+from flask_jwt_extended import JWTManager # type: ignore
 
 
 
@@ -30,8 +29,6 @@ def create_app(config):
     #app.config.from_object(Config)
     if app.config["SQLALCHEMY_DATABASE_URI"]:
         print("using db")
-
-    #db = SQLAlchemy(app)
 
 
     # Initialize CORS
@@ -73,7 +70,7 @@ def create_app(config):
     # Set the JWT_SECRET_KEY in the app configuration
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 
-    jwt = JWTManager(app)  # Instantiate the JWTManager class
+    JWTManager(app)  # Instantiate the JWTManager class
 
 
     # Initialize Flask-Mail

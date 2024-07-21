@@ -1,7 +1,7 @@
 """Emails module"""
 
 from flask import url_for, render_template, current_app
-from flask_mail import Message
+from flask_mail import Message # type: ignore
 from foodie import mail
 import threading
 
@@ -21,7 +21,7 @@ def send_async_email(app, msg):
     with app.app_context():
         mail.send(msg)
 
-def send_email(name, email, subject, template, template_data):
+def send_email(email, subject, template, template_data):
     try:
         with current_app.app_context():
                 msg_title = subject
@@ -46,7 +46,7 @@ def reset_password_otp(name, email, otp):
         'name': name,
         'otp': otp
     }
-    send_email(name, email, subject, template, template_data)
+    send_email(email, subject, template, template_data)
 
 # Sending OTP for registration or password reset
 def send_otp_email(name, email, otp):
@@ -59,7 +59,7 @@ def send_otp_email(name, email, otp):
         'name': name,
         'otp': otp
     }
-    send_email(name, email, subject, template, template_data)
+    send_email(email, subject, template, template_data)
 
 # Sending welcome email
 def welcome_email(name, email):
@@ -71,6 +71,6 @@ def welcome_email(name, email):
         'body': 'Welcome to Foodie. Please use this verification code to confirm your registration',
         'name': name
     }
-    send_email(name, email, subject, template, template_data)
+    send_email(email, subject, template, template_data)
 
 

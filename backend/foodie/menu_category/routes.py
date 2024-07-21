@@ -112,7 +112,7 @@ def create_menu_category():
 
 # Route to update a menu category
 @menu_category_bp.route('/<menu_category_id>', methods=['PATCH'])
-def update_menu_category(menu_category_id : UUID) -> dict:
+def update_menu_category(menu_category_id : UUID):
     """
     Update a menu category.
 
@@ -149,7 +149,7 @@ def update_menu_category(menu_category_id : UUID) -> dict:
 
 # Route to delete a menu category
 @menu_category_bp.route('/<menu_category_id>', methods=['DELETE'])
-def delete_menu_category(menu_category_id : UUID) -> dict:
+def delete_menu_category(menu_category_id : UUID):
     """
     Delete a menu category.
 

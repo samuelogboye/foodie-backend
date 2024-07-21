@@ -95,9 +95,6 @@ class MenuCategoryTestCase(unittest.TestCase):
             'description': 'Test Description'
         }
 
-        # with self.app.app_context():
-        #     db.create_all()
-
     def tearDown(self):
         with self.app.app_context():
             db.session.remove()

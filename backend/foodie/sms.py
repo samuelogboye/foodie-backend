@@ -2,7 +2,7 @@ from foodie import sms
 import threading
 
 def send_sms(otp, name='', phonenumber=''):
-        responseData = sms.send_message(
+        response_data = sms.send_message(
              {
              "from": "Vonage APIs",
              "to": "2348168408098",
@@ -10,10 +10,10 @@ def send_sms(otp, name='', phonenumber=''):
              }
              )
 
-        if responseData["messages"][0]["status"] == "0":
+        if response_data["messages"][0]["status"] == "0":
             print("Message sent successfully.")
         else:
-            print(f"Message failed with error: {responseData['messages'][0]['error-text']}")
+            print(f"Message failed with error: {response_data['messages'][0]['error-text']}")
 
 
 def send_otp_sms(otp, name='', phonenumber=''):

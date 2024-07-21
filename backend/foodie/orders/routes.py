@@ -36,7 +36,7 @@ def get_order(order_id):
                 'message': 'Order retrieved successfully'
         }), 200
 
-import stripe
+import stripe # type: ignore
 import os
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
@@ -47,7 +47,6 @@ def create_order(user):
     try:
         data = request.get_json()
         user_id = user.id
-        #total_price = data.get('totalOrderPrice')
         total_price = data.get('totalPriceCart')
         delivery_address = data.get('shippingAddress')
         if not delivery_address:
@@ -108,8 +107,7 @@ def create_order(user):
             'quantity': 1,  # Assuming one unit of transaction fee
         })
         db.session.commit()
-        #YOUR_DOMAIN = 'https://main--statuesque-crepe-3382b9.netlify.app'
-        YOUR_DOMAIN = 'http://0.0.0.0:8080'
+        YOUR_DOMAIN = 'https://0.0.0.0:8080'
         encrypted_order_id = encrypt_order_id(new_order.id)
         success_url = f"{YOUR_DOMAIN}/success/{encrypted_order_id}"
         checkout_session = stripe.checkout.Session.create(
